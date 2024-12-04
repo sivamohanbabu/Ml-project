@@ -1,29 +1,31 @@
-
+import pickle
 import pandas as pd
 import streamlit as st
 from streamlit_option_menu import option_menu
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 import numpy as np
-import pickle
 from PIL import Image
- # 2.Load and preprocess the dataset
-dataset = pd.read_csv("./general.csv")
+
+# Load and preprocess the dataset
+dataset = pd.read_csv("general.csv")
 X = dataset.drop('Disease', axis=1)
 y = dataset['Disease']
 scaler = StandardScaler()
 X = scaler.fit_transform(X)
 
+# Train the model
+model = RandomForestClassifier(random_state=42)
+model.fit(X, y)
 
-# 3.loading the saved models
- 
+
+# loading the saved models
+
 diabetes_model = pickle.load(open('models/diabetes_model.sav', 'rb'))
- 
+
 heart_disease_model = pickle.load(open('models/heart_disease_model1.sav','rb'))
- 
+
 parkinsons_model = pickle.load(open('models/parkinsons_model.sav', 'rb'))
-
-
 
 def predict_disease(temp_f, pulse_rate_bpm, vomiting, yellowish_urine, indigestion):
     # Prepare user input as a single-row DataFrame
@@ -34,17 +36,17 @@ def predict_disease(temp_f, pulse_rate_bpm, vomiting, yellowish_urine, indigesti
         'YellowishUrine': [yellowish_urine],
         'Indigestion': [indigestion]
     })
- 
+
     # Standardize the user input
     user_input = scaler.transform(user_input)
- 
+
     # Make prediction
     predicted_disease = model.predict(user_input)[0]
     disease_names = { 0: 'Heart Disease',1: 'Viral Fever/Cold', 2: 'Jaundice', 3: 'Food Poisoning',4: 'Normal'}
     return disease_names[predicted_disease]
 
-    def show_attribute_descriptions():
-      attribute_descriptions = {
+def show_attribute_descriptions():
+    attribute_descriptions = {
         "MDVP:Fo(Hz)": "Average vocal fundamental frequency",
         "MDVP:Fhi(Hz)": "Maximum vocal fundamental frequency",
         "MDVP:Flo(Hz)": "Minimum vocal fundamental frequency",
@@ -69,14 +71,16 @@ def predict_disease(temp_f, pulse_rate_bpm, vomiting, yellowish_urine, indigesti
         "spread2": "Three nonlinear measures of fundamental frequency variation",
         "PPE": "Three nonlinear measures of fundamental frequency variation",
     }
- 
+
     st.header("Attribute Descriptions")
     for attribute, description in attribute_descriptions.items():
         st.write(f"**{attribute}**: {description}")
+
+
 def calculate_bmi(weight, height):
     bmi = weight / (height / 100) ** 2
     return bmi
- 
+
 def interpret_bmi(bmi):
     if bmi < 18.5:
         return "Underweight"
@@ -86,21 +90,22 @@ def interpret_bmi(bmi):
         return "Overweight"
     else:
         return "Obese"
+
 # sidebar for navigation
 def main():
     with st.sidebar:
         image = Image.open('images/navbar.png')
-        st.image(image,width =200)
+        st.image(image,width =200) 
         selected = option_menu('Disease Diagnosis and Recommendation System',
-                             
+                              
                               ['GENERAL','Diabetes Prediction',
                                'Heart Disease Prediction',
                                'Parkinsons Prediction','BMI CALCULATOR'],
                               icons=['dashboard','activity','heart','person','line-chart'],
                               default_index=0)
- 
+
     if(selected == 'GENERAL'):
-        st.title("General Diagnosis")
+        st.title("General Diagnosis") 
         st.write("Please enter the following information:")
         col1,col2 = st.columns([2,1])
         with col1:
@@ -121,7 +126,7 @@ def main():
        'Jaundice': 'Rest, stay well-hydrated, and follow a balanced diet.\nIf you notice yellowing of the skin or eyes (jaundice), seek medical attention immediately for proper diagnosis and treatment.',
        'Food Poisoning': 'Stay hydrated and avoid solid foods until symptoms subside.\nIf you experience severe symptoms, seek medical attention promptly for proper evaluation and treatment.',
        'Normal': 'Maintain a healthy lifestyle with regular exercise and a balanced diet.\nEven if you are feeling well, have regular check-ups with your doctor to monitor your overall health.'
-        }
+        } 
            
    
        
@@ -134,129 +139,129 @@ def main():
                else:
                    st.warning("Unknown disease prediction. Please check your input and try again.")
                #st.write(f"Predicted Disease: {predicted_disease}")    
-       
+        
         with col2:
             image = Image.open('images/general.png')
             st.image(image,width =500)
-       
+        
     # Diabetes Prediction Page
     if (selected == 'Diabetes Prediction'):
-       
+        
         # page title
         st.title('Diabetes Prediction')
-       
-       
+        
+        
         # getting the input data from the user
         col1, col2, col3,col4= st.columns(4)
-       
+        
         with col1:
             Pregnancies = st.text_input('No of Pregnancies')
-           
+            
         with col2:
             Glucose = st.text_input('Glucose Level')
-       
+        
         with col3:
             BloodPressure = st.text_input('Blood Pressure value')
-       
+        
         with col1:
             SkinThickness = st.text_input('Skin Thickness value')
-       
+        
         with col2:
             Insulin = st.text_input('Insulin Level')
-       
+        
         with col3:
             BMI = st.text_input('BMI')
-       
+        
         with col1:
             DiabetesPedigreeFunction = st.text_input('Diabetes Pedigree Function value')
-       
+        
         with col2:
             Age = st.text_input('Age')
-       
+        
         with col4:
             image = Image.open('images/diabetes.png')
             st.image(image,width = 400)  
- 
+
         # code for Prediction
         diab_diagnosis = ''
-       
+        
         # creating a button for Prediction
-       
+        
         if st.button('Diabetes Test Result'):
             diab_prediction = diabetes_model.predict([[Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, Age]])
-           
+            
             if (diab_prediction[0] == 1):
               st.success('The person is diabetic')
               with st.expander("Medicine Recommendation:"):
                     st.info(f"Medicine Recommendation: {'Please Consult a Medical Profesional. Please follow a balanced and healthy diet. It is important to exercise regularly.'}")
             else:
               st.success('The person is not diabetic')
-       
+        
            
         #st.success(diab_diagnosis)
-   
-   
-   
-   
+    
+    
+    
+    
     # Heart Disease Prediction Page
     if (selected == 'Heart Disease Prediction'):
-       
+        
         # page title
         st.title('Heart Disease Prediction')
-       
+        
         col1, col2, col3 ,col4= st.columns(4)
-       
+        
         with col1:
             age = st.text_input('Age')
-           
+            
         with col2:
             sex_options = ['Male','Female']
             sex = st.selectbox('Sex',sex_options)
-           
+            
         with col3:
             cp = st.text_input('Chest Pain type(1,2,3,4)')
-           
+            
         with col1:
             trestbps = st.text_input('Resting Blood Pressure')
-           
+            
         with col2:
             chol = st.text_input('Serum Cholestoral in mg/dl')
-           
+            
         with col3:
             fbs = st.text_input('Fasting Blood Sugar > 120 mg/dl')
-           
+            
         with col1:
             restecg = st.text_input('Resting Electrocardiographic results')
-           
+            
         with col2:
             thalach = st.text_input('Maximum Heart Rate achieved')
-           
+            
         with col3:
             exang = st.text_input('Exercise Induced Angina')
-           
+            
         with col1:
             oldpeak = st.text_input('ST depression induced by exercise')
-           
+            
         with col2:
             slope = st.text_input('Slope of the peak exercise ST segment')
-           
+            
         with col3:
             ca = st.text_input('Major vessels colored by flourosopy')
-           
+            
         with col1:
             thal = st.text_input('Results of Nuclear Stress Test(0,1,2)')
-           
+            
         with col4:
             image = Image.open('images/heart.png')
             st.image(image,width =350)
- 
+
          
          
         # code for Prediction
         heart_diagnosis = ''
-       
+        
         # creating a button for Prediction
-       
+        
         if st.button('Heart Disease Test Result'):
             sex_mapping = {'Male': 1, 'Female': 0}
             sex_numeric = sex_mapping[sex]
@@ -270,98 +275,98 @@ def main():
                     st.info(f"Medicine Recommendation: {'SEEK IMMEDIATE MEDICAL ATTENTION. We encourage you to make positive lifestyle changes to reduce risk factors for Heart Disease.'}")
             else:
                 st.success('The person does not have any heart disease')
-           
+            
         #st.success(heart_diagnosis)
-           
+            
          
-       
-   
+        
+    
     # Parkinson's Prediction Page
     if (selected == "Parkinsons Prediction"):
-       
+        
         # page title
         st.title("Parkinson's Disease Prediction")
         st.subheader('Enter the details of your Biomedical Voice Measurement Test:')
         col1, col2, col3, col4, col5,col6 = st.columns(6)  
-       
+        
         with col1:
             fo = st.text_input('Fo(Hz)')
-           
+            
         with col2:
             fhi = st.text_input('Fhi(Hz)')
-           
+            
         with col3:
             flo = st.text_input('Flo(Hz)')
-           
+            
         with col4:
             Jitter_percent = st.text_input('Jitter(%)')
-           
+            
         with col5:
             Jitter_Abs = st.text_input('Jitter(Abs)')
-           
+            
         with col1:
             RAP = st.text_input('RAP')
-           
+            
         with col2:
             PPQ = st.text_input('PPQ')
-           
+            
         with col3:
             DDP = st.text_input('DDP')
-           
+            
         with col4:
             Shimmer = st.text_input('Shimmer')
-           
+            
         with col5:
             Shimmer_dB = st.text_input('Shimmer(dB)')
-           
+            
         with col1:
             APQ3 = st.text_input('APQ3')
-           
+            
         with col2:
             APQ5 = st.text_input('APQ5')
-           
+            
         with col3:
             APQ = st.text_input('APQ')
-           
+            
         with col4:
             DDA = st.text_input('DDA')
-           
+            
         with col5:
             NHR = st.text_input('NHR')
-           
+            
         with col1:
             HNR = st.text_input('HNR')
-           
+            
         with col2:
             RPDE = st.text_input('RPDE')
-           
+            
         with col3:
             DFA = st.text_input('DFA')
-           
+            
         with col4:
             spread1 = st.text_input('spread1')
-           
+            
         with col5:
             spread2 = st.text_input('spread2')
-           
+            
         with col1:
             D2 = st.text_input('D2')
-           
+            
         with col2:
             PPE = st.text_input('PPE')
-           
+            
         with col6:
             image = Image.open('images/parkinsons.png')
             st.image(image,width =350)
- 
-       
+
+        
         # code for Prediction
         parkinsons_diagnosis = ''
-       
+        
         # creating a button for Prediction    
         if st.button("Parkinson's Test Result"):
             parkinsons_prediction = parkinsons_model.predict([[fo, fhi, flo, Jitter_percent, Jitter_Abs, RAP, PPQ,DDP,Shimmer,Shimmer_dB,APQ3,APQ5,APQ,DDA,NHR,HNR,RPDE,DFA,spread1,spread2,D2,PPE]])                          
-           
+            
             if (parkinsons_prediction[0] == 1):
               st.success('The person has Parkinsons disease')
               with st.expander("Medicine Recommendation:"):
@@ -370,41 +375,41 @@ def main():
               parkinsons_diagnosis = "The person does not have Parkinson's disease"
         if st.button("Show Attribute Descriptions"):
             show_attribute_descriptions()    
- 
+
              
         #st.success(parkinsons_diagnosis)
-       
+        
     if (selected == 'BMI CALCULATOR'):
-       
+        
         st.title("BMI CALCULATOR")
- 
+
         st.write("Body Mass Index (BMI) is a measure of body fat based on height and weight.")
         st.write("Use this calculator to find out your BMI category.")
         col1,col2 = st.columns([2,1])
         with col1:
             weight = st.text_input("Enter your weight (in kilograms)")
             height = st.text_input("Enter your height (in centimeters)")
-       
+        
             if st.button("Calculate BMI"):
-               
+                
                 weight = float(weight)
                 height = float(height)
                 bmi = calculate_bmi(weight, height)
                 category = interpret_bmi(bmi)
-       
+        
                 st.write("### Results")
                 st.write(f"Your BMI: {bmi:.2f}")
                 st.write(f"Category: {category}")
         with col2:
             image = Image.open('images/bmi.png')
-            st.image(image,width =350)  
- 
- 
-   
- 
+            st.image(image,width =350)   
+
+
+    
+
 if __name__ == "__main__":
     main()
- 
+
 st.write("\n")
 st.write("\n")
 st.write("\n")
@@ -417,3 +422,6 @@ st.markdown("<p style = 'color:grey;'>This is a prediction web app for informati
 st.write("\n")
 st.write("\n")
 st.markdown('<p style="font-size:12px; color:#808080;">©2024 Project by Edunet QA Team</p>', unsafe_allow_html=True)
+
+
+
